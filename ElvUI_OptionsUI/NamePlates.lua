@@ -2,6 +2,7 @@ local E, _, V, P, G = unpack(ElvUI)
 local C, L = unpack(select(2, ...))
 local NP = E:GetModule("NamePlates")
 local ACD = E.Libs.AceConfigDialog
+local ACH = E.Libs.ACH
 
 local next, ipairs, pairs, type, tonumber, tostring = next, ipairs, pairs, type, tonumber, tostring
 local tremove, tinsert, tconcat = tremove, tinsert, table.concat
@@ -3334,8 +3335,8 @@ local function GetUnitSettings(unit, name)
 			},
 			nameGroup = {
 				order = 6,
+				name = L["Name"],
 				type = "group",
-				name = L["NAME"],
 				get = function(info)
 					return E.db.nameplates.units[unit].name[info[#info]]
 				end,
@@ -3346,42 +3347,87 @@ local function GetUnitSettings(unit, name)
 				args = {
 					enable = {
 						order = 1,
-						type = "toggle",
-						name = L["ENABLE"]
+						name = L["Enable"],
+						type = "toggle"
 					},
-					abbrev = {
+					format = {
 						order = 2,
-						type = "toggle",
-						name = L["Abbreviation"],
-						disabled = function() return not E.db.nameplates.units[unit].name.enable end
+						name = L["Text Format"],
+						type = "input",
 					},
-					spacer = {
+					position = {
 						order = 3,
-						type = "description",
-						name = " "
+						type = "select",
+						name = L["Position"],
+						values = {
+							["CENTER"] = L["Center"],
+							["TOPLEFT"] = L["Top Left"],
+							["BOTTOMLEFT"] = L["Bottom Left"],
+							["TOPRIGHT"] = L["Top Right"],
+							["BOTTOMRIGHT"] = L["Bottom Right"]
+						}
 					},
-					font = {
+					parent = {
 						order = 4,
 						type = "select",
-						name = L["Font"],
-						dialogControl = "LSM30_Font",
-						values = AceGUIWidgetLSMlists.font,
-						disabled = function() return not E.db.nameplates.units[unit].name.enable end
+						name = L["Parent"],
+						values = {
+							["Nameplate"] = L["Nameplate"],
+							["Health"] = L["Health"]
+						}
 					},
-					fontSize = {
+					xOffset = {
 						order = 5,
+						name = L["X-Offset"],
 						type = "range",
-						name = L["FONT_SIZE"],
-						min = 4, max = 32, step = 1,
-						disabled = function() return not E.db.nameplates.units[unit].name.enable end
+						min = -100,
+						max = 100,
+						step = 1
 					},
-					fontOutline = {
+					yOffset = {
 						order = 6,
-						type = "select",
-						name = L["Font Outline"],
-						desc = L["Set the font outline."],
-						values = C.Values.FontFlags,
-						disabled = function() return not E.db.nameplates.units[unit].name.enable end
+						name = L["Y-Offset"],
+						type = "range",
+						min = -100,
+						max = 100,
+						step = 1
+					},
+					fontGroup = {
+						type = "group",
+						order = 7,
+						name = L["Font"],
+						guiInline = true,
+						get = function(info)
+							return E.db.nameplates.units[unit].name[info[#info]]
+						end,
+						set = function(info, value)
+							E.db.nameplates.units[unit].name[info[#info]] = value
+							NP:ConfigureAll()
+						end,
+						args = {
+							font = {
+								type = "select",
+								dialogControl = "LSM30_Font",
+								order = 1,
+								name = L["Font"],
+								values = _G.AceGUIWidgetLSMlists.font
+							},
+							fontSize = {
+								order = 2,
+								name = L["FONT_SIZE"],
+								type = "range",
+								min = 4,
+								max = 60,
+								step = 1
+							},
+							fontOutline = {
+								order = 3,
+								name = L["Font Outline"],
+								desc = L["Set the font outline."],
+								type = "select",
+								values = C.Values.FontFlags
+							}
+						}
 					}
 				}
 			},
