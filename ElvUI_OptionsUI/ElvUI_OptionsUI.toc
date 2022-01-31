@@ -1,5 +1,5 @@
 ## Interface: 50400
-## Author: Elv, Bunny, Apollyon
+## Author: Elv, Bunny, Apollyon, Avoel
 ## Version: 1.07
 ## Title: |cff1784d1ElvUI|r |cfd9b9b9bOptionsUI|r
 ## Notes: Options for ElvUI.

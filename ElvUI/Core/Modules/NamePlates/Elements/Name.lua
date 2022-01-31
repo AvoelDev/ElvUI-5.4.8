@@ -23,55 +23,64 @@ local function abbrev(name)
 end
 
 function NP:Update_Name(frame, triggered)
-	local db = NP.db.units[frame.UnitType].name
 	if not triggered then
-		if not db.enable then return end
+		if not self.db.units[frame.UnitType].name.enable then return end
 	end
 
+	local name = frame.Name
 	local nameText = frame.UnitName or UNKNOWN
-	frame.Name:SetText(db.abbrev and abbrev(nameText) or nameText)
+	name:SetText(self.db.units[frame.UnitType].name.abbrev and abbrev(nameText) or nameText)
 
 	if not triggered then
-		frame.Name:ClearAllPoints()
-		if NP.db.units[frame.UnitType].health.enable or (NP.db.alwaysShowTargetHealth and frame.isTarget) then
-			frame.Name:SetJustifyH("LEFT")
-			frame.Name:SetPoint(E.InversePoints[db.position], db.parent == "Nameplate" and frame or frame[db.parent], db.position, db.xOffset, db.yOffset)
-			frame.Name:SetParent(frame.Health)
-		else
-			frame.Name:SetJustifyH("CENTER")
-			frame.Name:SetPoint("TOP", frame)
-			frame.Name:SetParent(frame)
-		end
-	end
-
-	local classColor, useClassColor, useReactionColor
-	local colorDB = NP.db.colors
-	local r, g, b = 1, 1, 1
-
-	if frame.UnitClass then
-		classColor = E:ClassColor(frame.UnitClass) or PRIEST_COLOR
-		useClassColor = db and db.useClassColor
-	end
-
-	if frame.UnitReaction then
-		useReactionColor = db and db.useReactionColor
-	end
-
-	if useClassColor and (frame.UnitType == "FRIENDLY_PLAYER" or frame.UnitType == "ENEMY_PLAYER") then
-		if frame.UnitClass and classColor then
-			r, g, b = classColor.r, classColor.g, classColor.b
-		end
-	elseif triggered or (not NP.db.units[frame.UnitType].health.enable and not frame.isTarget) or (useReactionColor and (frame.UnitType == "FRIENDLY_NPC" or frame.UnitType == "ENEMY_NPC")) then
-		if frame.UnitReaction and frame.UnitReaction == 4 then
-			r, g, b = colorDB.reactions.neutral.r, colorDB.reactions.neutral.g, colorDB.reactions.neutral.b
-		elseif frame.UnitReaction and frame.UnitReaction > 4 then
-			if frame.UnitType == "FRIENDLY_PLAYER" then
-				r, g, b = colorDB.reactions.friendlyPlayer.r, colorDB.reactions.friendlyPlayer.g, colorDB.reactions.friendlyPlayer.b
+		name:ClearAllPoints()
+		if self.db.units[frame.UnitType].health.enable or (self.db.alwaysShowTargetHealth and frame.isTarget) then
+			if frame.UnitTrivial and NP.db.trivial then
+				name:SetJustifyH("CENTER")
+				name:SetPoint("BOTTOM", frame.Health, "TOP", 0, E.Border*2)
 			else
-				r, g, b = colorDB.reactions.good.r, colorDB.reactions.good.g, colorDB.reactions.good.b
+				name:SetJustifyH("LEFT")
+				name:SetPoint("BOTTOMLEFT", frame.Health, "TOPLEFT", 0, E.Border*2)
+				name:SetPoint("BOTTOMRIGHT", frame.Level, "BOTTOMLEFT")
 			end
 		else
-			r, g, b = colorDB.reactions.bad.r, colorDB.reactions.bad.g, colorDB.reactions.bad.b
+			name:SetJustifyH("CENTER")
+			name:SetPoint("TOP", frame)
+		end
+	end
+
+	local class = frame.UnitClass
+	local reactionType = frame.UnitReaction
+
+	local r, g, b = 1, 1, 1
+	local classColor, useClassColor, useReactionColor
+
+	if class then
+		classColor = E:ClassColor(class) or PRIEST_COLOR
+		useClassColor = self.db.units[frame.UnitType].name and self.db.units[frame.UnitType].name.useClassColor
+	end
+	if reactionType then
+		useReactionColor = self.db.units[frame.UnitType].name and self.db.units[frame.UnitType].name.useReactionColor
+	end
+
+	local db = self.db.colors
+
+	if useClassColor and (frame.UnitType == "FRIENDLY_PLAYER" or frame.UnitType == "ENEMY_PLAYER") then
+		if class and classColor then
+			r, g, b = classColor.r, classColor.g, classColor.b
+		end
+	elseif triggered or (not self.db.units[frame.UnitType].health.enable and not frame.isTarget) or (useReactionColor and (frame.UnitType == "FRIENDLY_NPC" or frame.UnitType == "ENEMY_NPC")) then
+		if reactionType and reactionType == 1 then
+			r, g, b = db.reactions.tapped.r, db.reactions.tapped.g, db.reactions.tapped.b
+		elseif reactionType and reactionType == 4 then
+			r, g, b = db.reactions.neutral.r, db.reactions.neutral.g, db.reactions.neutral.b
+		elseif reactionType and reactionType > 4 then
+			if frame.UnitType == "FRIENDLY_PLAYER" then
+				r, g, b = db.reactions.friendlyPlayer.r, db.reactions.friendlyPlayer.g, db.reactions.friendlyPlayer.b
+			else
+				r, g, b = db.reactions.good.r, db.reactions.good.g, db.reactions.good.b
+			end
+		else
+			r, g, b = db.reactions.bad.r, db.reactions.bad.g, db.reactions.bad.b
 		end
 	end
 
@@ -81,17 +90,17 @@ function NP:Update_Name(frame, triggered)
 	end
 
 	if triggered or (r ~= frame.Name.r or g ~= frame.Name.g or b ~= frame.Name.b) then
-		frame.Name:SetTextColor(r, g, b)
+		name:SetTextColor(r, g, b)
 
 		if not triggered then
 			frame.Name.r, frame.Name.g, frame.Name.b = r, g, b
 		end
 	end
 
-	if NP.db.nameColoredGlow then
-		frame.Name.NameOnlyGlow:SetVertexColor(r - 0.1, g - 0.1, b - 0.1, 1)
+	if self.db.nameColoredGlow then
+		name.NameOnlyGlow:SetVertexColor(r - 0.1, g - 0.1, b - 0.1, 1)
 	else
-		frame.Name.NameOnlyGlow:SetVertexColor(colorDB.glowColor.r, colorDB.glowColor.g, colorDB.glowColor.b, colorDB.glowColor.a)
+		name.NameOnlyGlow:SetVertexColor(db.glowColor.r, db.glowColor.g, db.glowColor.b, db.glowColor.a)
 	end
 end
 
@@ -102,9 +111,10 @@ function NP:Configure_Name(frame)
 end
 
 function NP:Configure_NameOnlyGlow(frame)
-	frame.Name.NameOnlyGlow:ClearAllPoints()
-	frame.Name.NameOnlyGlow:SetPoint("TOPLEFT", frame.IconOnlyChanged and frame.IconFrame or frame.Name, -20, 8)
-	frame.Name.NameOnlyGlow:SetPoint("BOTTOMRIGHT", frame.IconOnlyChanged and frame.IconFrame or frame.Name, 20, -8)
+	local name = frame.Name
+	name.NameOnlyGlow:ClearAllPoints()
+	name.NameOnlyGlow:SetPoint("TOPLEFT", frame.IconOnlyChanged and frame.IconFrame or name, -20, 8)
+	name.NameOnlyGlow:SetPoint("BOTTOMRIGHT", frame.IconOnlyChanged and frame.IconFrame or name, 20, -8)
 end
 
 function NP:Construct_Name(frame)
